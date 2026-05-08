@@ -5,6 +5,8 @@ import errormiddleware from "./middlewares/error_middleware.js";
 import registerRoutes from "./routes/register.js";
 import loginRoutes from "./routes/login.js";
 import documentRoutes from "./routes/documentroute.js";
+import searchQuery from "./routes/searchroute.js";
+import chatQuery from "./routes/chatroute.js";
 const app = express();
 
 app.use(cors());
@@ -20,5 +22,8 @@ app.get("/", async (req, res) => {
 app.use("/register", registerRoutes);
 app.use("/login", loginRoutes);
 app.use("/document", documentRoutes);
+app.use("/search", searchQuery);
+app.use("/chat", chatQuery);
+
 app.use(errormiddleware);
 export default app;

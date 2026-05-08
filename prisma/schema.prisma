@@ -37,6 +37,7 @@ model DocumentChunk {
   documentId Int
   content    String
   createdAt  DateTime @default(now())
+  embedding  Json?
 
   document   Document @relation(fields: [documentId], references: [id])
 }

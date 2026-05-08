@@ -1,6 +1,6 @@
 import { Worker } from "bullmq";
 import { prisma } from "../db.js";
-
+import { generateEmbedding } from "../services/gemini.service.js";
 const worker = new Worker(
   "document",
   async (job) => {
@@ -11,10 +11,14 @@ const worker = new Worker(
         .split("\n\n")
         .map((chunk) => chunk.trim())
         .filter(Boolean);
+      const embeddings = await Promise.all(
+        chunks.map((chunk) => generateEmbedding(chunk)),
+      );
 
-      const chunkData = chunks.map((val) => ({
+      const chunkData = chunks.map((val, i) => ({
         content: val,
         documentId,
+        embedding: embeddings[i],
       }));
 
       const resultchunks = await prisma.documentChunk.createMany({

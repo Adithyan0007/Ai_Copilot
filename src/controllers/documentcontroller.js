@@ -18,6 +18,7 @@ const createDocument = async (req, res) => {
         title: true,
       },
     });
+
     await documentQueue.add("chunk-document", {
       documentId: document.id,
       content,
