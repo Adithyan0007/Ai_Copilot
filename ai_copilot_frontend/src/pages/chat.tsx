@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import FileUpload from "../components/fileUpload";
 interface Message {
   role: "user" | "assistant";
   content: string;
@@ -48,6 +49,7 @@ function Chat() {
       setLoading(false);
     }
   }
+  function addDocument() {}
   return (
     <div className="min-h-screen bg-zinc-950 text-white flex flex-col">
       {/* Header */}
@@ -88,14 +90,16 @@ function Chat() {
             className="flex-1 bg-zinc-900 border border-red-700 rounded-xl p-4 outline-none resize-none focus:border-blue-500"
             rows={3}
           />
-
-          <button
-            onClick={handleSendMessage}
-            disabled={loading}
-            className="bg-blue-600 hover:bg-green-300 px-6 rounded-xl font-medium"
-          >
-            Send
-          </button>
+          <div className="flex flex-col gap-5">
+            <button
+              onClick={handleSendMessage}
+              disabled={loading}
+              className="bg-blue-600 hover:bg-green-300 p-4 rounded-xl font-medium"
+            >
+              Send
+            </button>{" "}
+            <FileUpload />
+          </div>
         </div>
       </div>
     </div>
