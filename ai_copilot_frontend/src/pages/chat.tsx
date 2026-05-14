@@ -1,105 +1,157 @@
 import { useState } from "react";
 import axios from "axios";
 import FileUpload from "../components/fileUpload";
+
 interface Message {
   role: "user" | "assistant";
   content: string;
 }
+
 function Chat() {
   const [query, setQuery] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [messages, setMessages] = useState<Message[]>([]);
+
   async function handleSendMessage() {
     if (!query.trim()) return;
-    const UserMessage: Message = {
+
+    const userMessage: Message = {
       role: "user",
       content: query,
     };
+
     const token = localStorage.getItem("token");
     if (!token) return;
-    setMessages((prev) => [...prev, UserMessage]);
+
+    setMessages((prev) => [...prev, userMessage]);
     setQuery("");
+
     try {
       setLoading(true);
+
       const data = await axios.post(
         "http://localhost:3000/chat",
-        {
-          query,
-        },
+        { query },
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         },
       );
+
       const assistantMessage: Message = {
         role: "assistant",
-        content: data?.data?.answer,
+        content: data?.data?.answer || "No answer received.",
       };
+
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (err) {
       console.log(err);
 
-      const errorMessage: Message = {
-        role: "assistant",
-        content: "something went wrong",
-      };
-      setMessages((prev) => [...prev, UserMessage]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "Something went wrong. Please try again.",
+        },
+      ]);
     } finally {
       setLoading(false);
     }
   }
-  function addDocument() {}
-  return (
-    <div className="min-h-screen bg-zinc-950 text-white flex flex-col">
-      {/* Header */}
 
-      <div className="border-b border-zinc-800 p-4">
-        <h1 className="text-2xl font-bold text-blue-500">AI Copilot</h1>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-slate-950 to-zinc-900 text-white flex flex-col">
+      <div className="sticky top-0 z-10 border-b border-white/10 bg-zinc-950/80 backdrop-blur-xl px-6 py-4">
+        <div className="max-w-5xl mx-auto flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-blue-400">AI Copilot</h1>
+            <p className="text-sm text-zinc-400">
+              Ask questions from your uploaded documents
+            </p>
+          </div>
+
+          <div className="text-xs px-3 py-1 rounded-full bg-green-500/10 text-green-400 border border-green-500/20">
+            Online
+          </div>
+        </div>
       </div>
-      {messages.length > 0 ? (
-        <div className="flex flex-col justify-center items-center">
-          {messages.map((val, index) =>
-            val.role == "user" ? (
-              <div key={index} className="bg-blue-300 w-150 rounded p-2 m-2">
-                {val.content}
+
+      <div className="flex-1 overflow-y-auto px-4 py-6">
+        <div className="max-w-4xl mx-auto space-y-4">
+          {messages.length === 0 ? (
+            <div className="h-[60vh] flex flex-col items-center justify-center text-center">
+              <div className="w-16 h-16 rounded-2xl bg-blue-600/20 flex items-center justify-center mb-4">
+                <span className="text-3xl">🤖</span>
               </div>
-            ) : (
+
+              <h2 className="text-3xl font-bold mb-2">
+                Start chatting with your AI Copilot
+              </h2>
+
+              <p className="text-zinc-400 max-w-md">
+                Upload a document and ask questions. Your assistant will answer
+                based on your document content.
+              </p>
+            </div>
+          ) : (
+            messages.map((message, index) => (
               <div
                 key={index}
-                className="bg-red-400 w-150 mt-2 rounded p-2 m-2"
+                className={`flex ${
+                  message.role === "user" ? "justify-end" : "justify-start"
+                }`}
               >
-                {val.content}
+                <div
+                  className={`max-w-[80%] rounded-2xl px-5 py-3 text-sm leading-6 shadow-lg ${
+                    message.role === "user"
+                      ? "bg-blue-600 text-white rounded-br-sm"
+                      : "bg-zinc-800 text-zinc-100 border border-white/10 rounded-bl-sm"
+                  }`}
+                >
+                  <p className="whitespace-pre-wrap">{message.content}</p>
+                </div>
               </div>
-            ),
+            ))
+          )}
+
+          {loading && (
+            <div className="flex justify-start">
+              <div className="bg-zinc-800 border border-white/10 rounded-2xl rounded-bl-sm px-5 py-3 text-sm text-zinc-300">
+                Thinking...
+              </div>
+            </div>
           )}
         </div>
-      ) : null}
+      </div>
 
-      <div className="border-t border-red-800 p-4">
-        {loading ? (
-          <div className="flex justify-center items-center">
-            <span className="bg-blue-600 rounded-xl p-2 mb-4">Thinking...</span>
+      <div className="sticky bottom-0 border-t border-white/10 bg-zinc-950/90 backdrop-blur-xl px-4 py-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex gap-3 items-end bg-zinc-900 border border-white/10 rounded-2xl p-3 shadow-2xl">
+            <textarea
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Ask anything from your document..."
+              className="flex-1 bg-transparent text-white placeholder:text-zinc-500 outline-none resize-none px-2 py-2"
+              rows={2}
+            />
+
+            <div className="flex gap-2">
+              <FileUpload />
+
+              <button
+                onClick={handleSendMessage}
+                disabled={loading || !query.trim()}
+                className="bg-blue-600 hover:bg-blue-500 disabled:bg-zinc-700 disabled:text-zinc-400 disabled:cursor-not-allowed px-5 py-3 rounded-xl font-medium transition"
+              >
+                Send
+              </button>
+            </div>
           </div>
-        ) : null}
-        <div className="max-w-4xl mx-auto flex gap-4">
-          <textarea
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Ask anything..."
-            className="flex-1 bg-zinc-900 border border-red-700 rounded-xl p-4 outline-none resize-none focus:border-blue-500"
-            rows={3}
-          />
-          <div className="flex flex-col gap-5">
-            <button
-              onClick={handleSendMessage}
-              disabled={loading}
-              className="bg-blue-600 hover:bg-green-300 p-4 rounded-xl font-medium"
-            >
-              Send
-            </button>{" "}
-            <FileUpload />
-          </div>
+
+          <p className="text-xs text-zinc-500 text-center mt-3">
+            AI can make mistakes. Verify important answers.
+          </p>
         </div>
       </div>
     </div>
