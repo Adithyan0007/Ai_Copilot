@@ -8,8 +8,6 @@ import { redis } from "../utils/redis_caching.js";
 
 const chatController = async (req, res) => {
   try {
-    console.log(req.body);
-
     const { userId } = req.user;
     const { query } = req.body || {};
 
@@ -32,78 +30,30 @@ const chatController = async (req, res) => {
       });
     }
 
-    const documents = await prisma.document.findMany({
-      where: {
-        userId,
-      },
-      select: {
-        title: true,
-        chunks: {
-          select: {
-            id: true,
-            content: true,
-            embedding: true,
-          },
-        },
-      },
-    });
-
-    if (!documents.length) {
-      return res.status(200).json({
-        success: true,
-        message: "No documents uploaded yet",
-        answer: null,
-        sources: [],
-      });
-    }
-
     const queryEmbedding = await generateEmbedding(query);
-
-    let results = [];
-
-    for (const document of documents) {
-      for (const chunk of document.chunks) {
-        let chunkEmbedding = chunk.embedding;
-
-        if (typeof chunkEmbedding === "string") {
-          chunkEmbedding = JSON.parse(chunkEmbedding);
-        }
-
-        if (!Array.isArray(chunkEmbedding)) continue;
-
-        const similarity = cosineSimilarity(queryEmbedding, chunkEmbedding);
-
-        results.push({
-          id: chunk.id,
-          title: document.title,
-          similarity,
-          content: chunk.content,
-        });
-      }
-    }
-
-    const topResults = results
-      .sort((a, b) => b.similarity - a.similarity)
-      .slice(0, 5);
-
-    if (!topResults.length || topResults[0].similarity < 0.7) {
+    const queryVector = `[${queryEmbedding.join(",")}]`;
+    const data =
+      await prisma.$queryRaw`select dc.id,dc.content,dc.index,dc."documentId",dc.embedding <=> ${queryVector}::vector AS distance from "DocumentChunk" dc join
+    "Document" d on d.id=dc."documentId" where d."userId"=${userId} ORDER BY distance LIMIT 5`;
+    if (data?.length < 1 || 1 - data[0]?.distance < 0.7) {
       return res.status(200).json({
         success: true,
+        cached: false,
         message: "No relevant information found in your documents",
         answer: null,
         sources: [],
       });
     }
 
-    const context = topResults
+    const context = data
       .map(
         (item, index) => `DOCUMENT CHUNK ${index + 1}:
 ${item.content}`,
       )
-      .join("\n\n");
+      .join("\n");
 
     const prompt = `
-Answer the user's question ONLY using the provided document chunks.
+Answer the user's question ONLY using the provided document chunks and maximum 200 words.
 
 If the answer is not found in the document context, say:
 "I could not find this information in your uploaded documents."
@@ -131,10 +81,10 @@ ANSWER:
 
     const responseData = {
       answer,
-      sources: topResults.map((item) => ({
+      sources: data.map((item) => ({
         chunkId: item.id,
         title: item.title,
-        similarity: item.similarity,
+        similarity: 1 - item.distance,
         content: item.content,
       })),
     };

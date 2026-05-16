@@ -33,13 +33,15 @@ model Document {
 }
 
 model DocumentChunk {
-  id         Int      @id @default(autoincrement())
-  documentId Int
-  content    String
-  createdAt  DateTime @default(now())
-  embedding  Json?
+  id          Int      @id @default(autoincrement())
+  documentId  Int
+  content     String
+  createdAt   DateTime @default(now())
+  embedding   Unsupported("vector(3072)")?
+  pageNumber  Int?
+  index       Int
 
-  document   Document @relation(fields: [documentId], references: [id])
+  document    Document @relation(fields: [documentId], references: [id])
 }
 
 model Message {

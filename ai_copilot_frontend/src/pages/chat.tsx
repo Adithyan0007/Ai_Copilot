@@ -41,7 +41,8 @@ function Chat() {
 
       const assistantMessage: Message = {
         role: "assistant",
-        content: data?.data?.answer || "No answer received.",
+        content:
+          data?.data?.answer || data?.data?.message || "No answer received.",
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
