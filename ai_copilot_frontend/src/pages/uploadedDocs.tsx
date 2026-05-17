@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useState, useEffect } from "react";
+import.meta.env;
 
 interface DocApi {
   id: number;
@@ -11,12 +12,15 @@ interface UploadedDocsProps {
 
 function UploadedDocs({ refreshDocs }: UploadedDocsProps) {
   const [docList, setDocList] = useState<DocApi[]>([]);
+  const apiUrl = import.meta.env.VITE_BACKEND_URL;
 
   async function fetchDocs() {
+    console.log(apiUrl);
+
     try {
       const token = localStorage.getItem("token");
 
-      const data = await axios.get("http://localhost:3000/document", {
+      const data = await axios.get(`${apiUrl}/document`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

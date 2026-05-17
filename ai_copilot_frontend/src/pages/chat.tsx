@@ -3,12 +3,16 @@ import axios from "axios";
 import FileUpload from "../components/fileUpload";
 import UploadedDocs from "./uploadedDocs";
 import { useNavigate } from "react-router-dom";
+import.meta.env;
+
 interface Message {
   role: "user" | "assistant";
   content: string;
 }
 
 function Chat() {
+  const apiUrl = import.meta.env.VITE_BACKEND_URL;
+
   const navigate = useNavigate();
   const [query, setQuery] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -32,7 +36,7 @@ function Chat() {
       setLoading(true);
 
       const data = await axios.post(
-        "http://localhost:3000/chat",
+        `${apiUrl}/chat`,
         { query },
         {
           headers: {

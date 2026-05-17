@@ -1,9 +1,10 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
+import.meta.env;
 function Login() {
   const navigate = useNavigate();
+  const apiUrl = import.meta.env.VITE_BACKEND_URL;
 
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -15,7 +16,7 @@ function Login() {
     try {
       setLoading(true);
 
-      const response = await axios.post("http://localhost:3000/login/", {
+      const response = await axios.post(`${apiUrl}/login/`, {
         email,
         password,
       });

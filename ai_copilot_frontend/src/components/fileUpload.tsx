@@ -1,10 +1,12 @@
 import { useRef, useState } from "react";
 import axios from "axios";
+import.meta.env;
 interface FileUploadProps {
   setRefreshDocs: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 function FileUpload({ setRefreshDocs }: FileUploadProps) {
+  const apiUrl = import.meta.env.VITE_BACKEND_URL;
   const [loading, setLoading] = useState<boolean>(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
@@ -26,7 +28,7 @@ function FileUpload({ setRefreshDocs }: FileUploadProps) {
     try {
       setLoading(true);
 
-      await axios.post("http://localhost:3000/document", formData, {
+      await axios.post(`${apiUrl}/document`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
