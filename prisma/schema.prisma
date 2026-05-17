@@ -27,6 +27,7 @@ model Document {
   userId    Int
   content   String
   createdAt DateTime @default(now())
+  status    String @default("processing")
 
   user      User            @relation(fields: [userId], references: [id])
   chunks    DocumentChunk[]

@@ -15,11 +15,6 @@ const worker = new Worker(
       const result = await parser.getText();
       const text = result.text;
       const chunks = overlapChunking(text);
-      // const chunks = text
-      //   .replace(/\r/g, "")
-      //   .split(/\n(?=[A-Z])/)
-      //   .map((chunk) => chunk.replace(/\n/g, " ").trim())
-      //   .filter((chunk) => chunk.length > 50);
 
       const embeddings = await Promise.all(
         chunks.map((chunk) => generateEmbedding(chunk)),
@@ -40,12 +35,23 @@ const worker = new Worker(
         },
         data: {
           content: text,
+          status: "completed",
         },
       });
 
       console.log("Chunks created:", chunks.length);
     } catch (err) {
       console.log("Worker error:", err);
+      console.log("Worker error:", err);
+
+      if (job.attemptsMade + 1 >= job.opts.attempts) {
+        await prisma.document.update({
+          where: { id: job.data.documentId },
+          data: { status: "failed" },
+        });
+      }
+
+      throw err;
     }
   },
   {

@@ -1,12 +1,15 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+
 function Login() {
   const navigate = useNavigate();
+
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
-  const handleLogin = async (e: React.SubmitEvent<HTMLFormElement>) => {
+
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     try {
@@ -20,6 +23,7 @@ function Login() {
       localStorage.setItem("token", response.data.token);
 
       alert("Login successful");
+
       navigate("/chat");
     } catch (error: any) {
       console.log(error);
@@ -29,31 +33,52 @@ function Login() {
       setLoading(false);
     }
   };
+
   return (
-    <div className="min-h-screen bg-red-950 flex justify-center items-center">
-      <div className="flex flex-col justify-center items-center w-100 bg-zinc-800 border border-zinc-800 rounded-2xl shadow-2xl">
-        <h1>Ai Copilot</h1>
-        <form onSubmit={handleLogin}>
-          <div className="flex flex-col justify-center items-center">
+    <div className="min-h-screen bg-zinc-950 flex items-center justify-center px-4">
+      <div className="w-full max-w-md rounded-3xl border border-white/10 bg-zinc-900/80 backdrop-blur p-8 shadow-2xl">
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold text-white">AI Copilot</h1>
+
+          <p className="mt-2 text-sm text-zinc-400">Login to continue</p>
+        </div>
+
+        <form onSubmit={handleLogin} className="space-y-5">
+          <div className="flex flex-col gap-2">
+            <label className="text-sm text-zinc-300">Email</label>
+
             <input
-              placeholder="email"
+              type="email"
+              placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="bg-white border border-red-500 rounded p-1 m-3"
+              className="rounded-xl border border-white/10 bg-zinc-800 px-4 py-3 text-white outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
             />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-sm text-zinc-300">Password</label>
+
             <input
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="password"
+              type="password"
+              placeholder="Enter your password"
               value={password}
-              className="bg-white border border-red-500 rounded p-1 m-3"
+              onChange={(e) => setPassword(e.target.value)}
+              className="rounded-xl border border-white/10 bg-zinc-800 px-4 py-3 text-white outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
-          <div className="flex justify-center">
-            <button className="bg-blue-700 p-1 rounded">submit</button>
-          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-xl bg-blue-600 py-3 font-medium text-white transition hover:bg-blue-500 disabled:opacity-50"
+          >
+            {loading ? "Logging in..." : "Login"}
+          </button>
         </form>
       </div>
     </div>
   );
 }
+
 export default Login;

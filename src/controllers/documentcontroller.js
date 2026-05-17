@@ -23,10 +23,22 @@ const createDocument = async (req, res) => {
       },
     });
 
-    await documentQueue.add("chunk-document", {
-      documentId: document.id,
-      content: content.path,
-    });
+    await documentQueue.add(
+      "chunk-document",
+      {
+        documentId: document.id,
+        content: content.path,
+      },
+      {
+        attempts: 3,
+        backoff: {
+          type: "exponential",
+          delay: 5000,
+        },
+        removeOnComplete: true,
+        removeOnFail: false,
+      },
+    );
 
     return res.status(201).json({
       success: true,
@@ -45,6 +57,7 @@ const getDocuments = async (req, res) => {
   try {
     const docs = await prisma.document.findMany({
       where: { userId: req.user.userId },
+      select: { id: true, title: true },
       orderBy: { createdAt: "desc" },
     });
 

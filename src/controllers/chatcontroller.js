@@ -33,8 +33,8 @@ const chatController = async (req, res) => {
     const queryEmbedding = await generateEmbedding(query);
     const queryVector = `[${queryEmbedding.join(",")}]`;
     const data =
-      await prisma.$queryRaw`select dc.id,dc.content,dc.index,dc."documentId",dc.embedding <=> ${queryVector}::vector AS distance from "DocumentChunk" dc join
-    "Document" d on d.id=dc."documentId" where d."userId"=${userId} ORDER BY distance LIMIT 5`;
+      await prisma.$queryRaw`select dc.id,dc.content,d.title,dc.index,dc."documentId",dc.embedding <=> ${queryVector}::vector AS distance from "DocumentChunk" dc join
+    "Document" d on d.id=dc."documentId" where d."userId"=${userId} and d.status=${"completed"} ORDER BY distance LIMIT 5`;
     if (data?.length < 1 || 1 - data[0]?.distance < 0.7) {
       return res.status(200).json({
         success: true,
